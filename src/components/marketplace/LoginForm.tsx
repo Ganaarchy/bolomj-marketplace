@@ -119,9 +119,12 @@ export function LoginForm() {
         </form>
 
         <div className="mt-5 rounded-md border bg-secondary/50 p-4 text-sm leading-6 text-muted-foreground">
-          New customer?{" "}
-          <Link className="font-medium text-primary hover:underline" href="/register">
-            Create an account
+          Аяллын байгууллага уу?{" "}
+          <Link
+            className="font-medium text-primary hover:underline"
+            href="/register-tenant"
+          >
+            Байгууллагаар бүртгүүлэх
           </Link>
         </div>
       </CardContent>

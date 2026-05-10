@@ -15,8 +15,8 @@ export function Footer() {
           <Link className="hover:text-white" href="/profile">
             Профайл
           </Link>
-          <Link className="hover:text-white" href="/register">
-            Бүртгүүлэх
+          <Link className="hover:text-white" href="/register-tenant">
+            Байгууллагаар бүртгүүлэх
           </Link>
           <Link className="hover:text-white" href="/my-bookings">
             Миний захиалгууд

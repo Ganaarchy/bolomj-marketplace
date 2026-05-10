@@ -1,15 +1,11 @@
+import { redirect } from "next/navigation";
+
 import type { Metadata } from "next";
 
-import { RegisterForm } from "@/components/marketplace/RegisterForm";
-
 export const metadata: Metadata = {
-  title: "Register"
+  title: "Байгууллагаар бүртгүүлэх"
 };
 
 export default function RegisterPage() {
-  return (
-    <main className="container py-10">
-      <RegisterForm />
-    </main>
-  );
+  redirect("/register-tenant");
 }

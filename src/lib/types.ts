@@ -42,16 +42,23 @@ export type LoginPayload = {
   password: string;
 };
 
-export type CustomerRegisterPayload = {
-  email: string;
-  password: string;
-  first_name: string;
-  last_name?: string | null;
-};
-
 export type LoginResponse = {
   accessToken: string;
   user: AuthUser;
+};
+
+export type TenantRequestPayload = {
+  name: string;
+  slug: string;
+  registration_number: string;
+  email: string;
+  phone: string;
+  description: string;
+  website_subdomain: string;
+  admin_first_name: string;
+  admin_last_name: string;
+  admin_email: string;
+  admin_password: string;
 };
 
 export type Tour = {

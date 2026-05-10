@@ -1,5 +1,6 @@
 import Link from "next/link";
 import {
+  Building2,
   CalendarCheck,
   Compass,
   GitCompareArrows,
@@ -30,6 +31,12 @@ export function Header() {
         <nav className="hidden items-center gap-2 md:flex">
           <Button variant="ghost" asChild>
             <Link href="/">Tours</Link>
+          </Button>
+          <Button variant="ghost" asChild>
+            <Link href="/register-tenant">
+              <Building2 className="h-4 w-4" />
+              Байгууллагаар бүртгүүлэх
+            </Link>
           </Button>
           <Button variant="outline" asChild>
             <Link href="/compare">
@@ -68,6 +75,12 @@ export function Header() {
             <nav className="mt-6 grid gap-2">
               <Button variant="ghost" className="justify-start" asChild>
                 <Link href="/">Tours</Link>
+              </Button>
+              <Button variant="ghost" className="justify-start" asChild>
+                <Link href="/register-tenant">
+                  <Building2 className="h-4 w-4" />
+                  Байгууллагаар бүртгүүлэх
+                </Link>
               </Button>
               <Button variant="outline" className="justify-start" asChild>
                 <Link href="/compare">

@@ -5,11 +5,11 @@ import type {
   AuthUser,
   BookingCreatePayload,
   BookingCreateResponse,
-  CustomerRegisterPayload,
   LoginPayload,
   LoginResponse,
   MarketplaceTour,
-  MyBooking
+  MyBooking,
+  TenantRequestPayload
 } from "@/lib/types";
 
 const DEFAULT_API_BASE_URL = "https://api.bolomj.space";
@@ -140,10 +140,11 @@ export function loginCustomer(payload: LoginPayload) {
   });
 }
 
-export function registerCustomer(payload: CustomerRegisterPayload) {
-  return apiFetch<LoginResponse>("/auth/customer/register", {
+export function createTenantRequest(payload: TenantRequestPayload) {
+  return apiFetch<unknown>("/public/tenant-requests", {
     method: "POST",
-    body: payload
+    body: payload,
+    next: { revalidate: 0 }
   });
 }
 
