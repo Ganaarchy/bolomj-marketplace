@@ -1,17 +1,21 @@
-import { getToken, logout } from "@/lib/auth";
+import { getStoredUser, getToken, logout } from "@/lib/auth";
 import type {
   ApiErrorResponse,
   ApiResponse,
   AuthUser,
+  BookingCreatePayload,
+  BookingCreateResponse,
+  CustomerRegisterPayload,
   LoginPayload,
   LoginResponse,
-  MarketplaceTour
+  MarketplaceTour,
+  MyBooking
 } from "@/lib/types";
 
 const DEFAULT_API_BASE_URL = "https://api.bolomj.space";
 
 type ApiFetchOptions = Omit<RequestInit, "body"> & {
-  auth?: boolean;
+  auth?: boolean | "customer";
   body?: unknown;
   next?: {
     revalidate?: number;
@@ -80,7 +84,10 @@ export async function apiFetch<T>(path: string, options: ApiFetchOptions = {}) {
 
   if (auth) {
     const token = getToken();
-    if (token) {
+    const shouldSendToken =
+      auth === true || (auth === "customer" && getStoredUser()?.role === "customer");
+
+    if (token && shouldSendToken) {
       requestHeaders.set("Authorization", `Bearer ${token}`);
     }
   }
@@ -126,8 +133,15 @@ export function fetchMarketplaceTour(id: string) {
   );
 }
 
-export function loginExistingUser(payload: LoginPayload) {
-  return apiFetch<LoginResponse>("/auth/login", {
+export function loginCustomer(payload: LoginPayload) {
+  return apiFetch<LoginResponse>("/auth/customer/login", {
+    method: "POST",
+    body: payload
+  });
+}
+
+export function registerCustomer(payload: CustomerRegisterPayload) {
+  return apiFetch<LoginResponse>("/auth/customer/register", {
     method: "POST",
     body: payload
   });
@@ -135,6 +149,29 @@ export function loginExistingUser(payload: LoginPayload) {
 
 export function fetchCurrentUser() {
   return apiFetch<AuthUser>("/auth/me", {
+    auth: true,
+    next: { revalidate: 0 }
+  });
+}
+
+export function createBooking(payload: BookingCreatePayload) {
+  return apiFetch<BookingCreateResponse>("/bookings", {
+    method: "POST",
+    auth: "customer",
+    body: payload,
+    next: { revalidate: 0 }
+  });
+}
+
+export function fetchCustomerBookings() {
+  return apiFetch<MyBooking[]>("/customer/bookings", {
+    auth: true,
+    next: { revalidate: 0 }
+  });
+}
+
+export function fetchCustomerBooking(id: string) {
+  return apiFetch<MyBooking>(`/customer/bookings/${encodeURIComponent(id)}`, {
     auth: true,
     next: { revalidate: 0 }
   });

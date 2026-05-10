@@ -53,7 +53,7 @@ export function ProfilePageClient() {
         setErrorMessage(
           error instanceof Error
             ? error.message
-            : "Профайл мэдээлэл авах боломжгүй байна."
+            : "Could not load profile."
         );
       } finally {
         if (isMounted) {
@@ -79,15 +79,14 @@ export function ProfilePageClient() {
     return (
       <Card className="mx-auto max-w-xl shadow-soft">
         <CardHeader>
-          <CardTitle>Профайл харахын тулд нэвтэрнэ үү</CardTitle>
+          <CardTitle>Log in to view your profile</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <p className="text-sm leading-6 text-muted-foreground">
-            Профайл нь зөвхөн generic backend auth-аар нэвтэрсэн одоо байгаа
-            хэрэглэгчдэд ажиллана.
+            Customer profile data is loaded from GET /auth/me.
           </p>
           <Button asChild>
-            <Link href="/login">Нэвтрэх</Link>
+            <Link href="/login">Log in</Link>
           </Button>
         </CardContent>
       </Card>
@@ -101,41 +100,40 @@ export function ProfilePageClient() {
           <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-md bg-primary text-primary-foreground">
             <UserRound className="h-6 w-6" />
           </div>
-          <CardTitle className="text-2xl">Профайл</CardTitle>
+          <CardTitle className="text-2xl">Profile</CardTitle>
           <p className="mt-2 text-sm leading-6 text-muted-foreground">
-            `GET /auth/me` endpoint-оос авсан одоо байгаа backend хэрэглэгчийн
-            мэдээлэл.
+            Loaded from GET /auth/me with the stored customer access token.
           </p>
         </div>
         <Button variant="outline" onClick={handleLogout}>
           <LogOut className="h-4 w-4" />
-          Гарах
+          Log out
         </Button>
       </CardHeader>
       <CardContent className="space-y-5">
         {isLoading ? (
           <div className="flex items-center gap-2 rounded-md border p-4 text-sm text-muted-foreground">
             <Loader2 className="h-4 w-4 animate-spin" />
-            Профайл уншиж байна...
+            Loading profile...
           </div>
         ) : null}
 
         {errorMessage ? (
           <Alert variant="destructive">
-            <AlertTitle>Профайл авах боломжгүй</AlertTitle>
+            <AlertTitle>Profile unavailable</AlertTitle>
             <AlertDescription>{errorMessage}</AlertDescription>
           </Alert>
         ) : null}
 
         {user ? (
           <div className="grid gap-3 sm:grid-cols-2">
-            <ProfileRow label="И-мэйл" value={user.email} />
-            <ProfileRow label="Эрх" value={user.role} />
-            <ProfileRow label="Нэр" value={user.first_name || "Тодорхойгүй"} />
-            <ProfileRow label="Овог" value={user.last_name || "Тодорхойгүй"} />
+            <ProfileRow label="Email" value={user.email} />
+            <ProfileRow label="Role" value={user.role} />
+            <ProfileRow label="First name" value={user.first_name || "Unknown"} />
+            <ProfileRow label="Last name" value={user.last_name || "Unknown"} />
             <ProfileRow
               label="Tenant ID"
-              value={user.tenant_id || "Тодорхойгүй"}
+              value={user.tenant_id || "None"}
             />
             <ProfileRow label="User ID" value={user.id} />
           </div>

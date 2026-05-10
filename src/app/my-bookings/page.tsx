@@ -1,18 +1,15 @@
 import type { Metadata } from "next";
 
-import { BackendGapPage } from "@/components/marketplace/BackendGapPage";
+import { MyBookingsPageClient } from "@/components/marketplace/MyBookingsPageClient";
 
 export const metadata: Metadata = {
-  title: "Миний захиалгууд"
+  title: "My bookings"
 };
 
 export default function MyBookingsPage() {
   return (
-    <BackendGapPage
-      title="Захиалгын түүх одоогоор дэмжигдээгүй"
-      description="Public customer booking history endpoint байхгүй тул маркетплейс захиалгын түүхийг одоогоор харуулахгүй."
-      missingEndpoints={["GET /customer/bookings", "GET /customer/bookings/:id"]}
-      note="Backend дээр GET /bookings/my байгаа ч энэ нь existing authenticated backend user-д хамаарах хязгаарлагдмал урсгал. Customer account registration/login бүрэн шийдэгдтэл энэ хуудсыг зориуд хаасан."
-    />
+    <main className="container py-10">
+      <MyBookingsPageClient />
+    </main>
   );
 }

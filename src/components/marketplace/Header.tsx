@@ -1,5 +1,11 @@
 import Link from "next/link";
-import { Compass, GitCompareArrows, Menu, UserRound } from "lucide-react";
+import {
+  CalendarCheck,
+  Compass,
+  GitCompareArrows,
+  Menu,
+  UserRound
+} from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -23,22 +29,28 @@ export function Header() {
 
         <nav className="hidden items-center gap-2 md:flex">
           <Button variant="ghost" asChild>
-            <Link href="/">Аяллууд</Link>
+            <Link href="/">Tours</Link>
           </Button>
           <Button variant="outline" asChild>
             <Link href="/compare">
               <GitCompareArrows className="h-4 w-4" />
-              Харьцуулах
+              Compare
+            </Link>
+          </Button>
+          <Button variant="ghost" asChild>
+            <Link href="/my-bookings">
+              <CalendarCheck className="h-4 w-4" />
+              Bookings
             </Link>
           </Button>
           <Button variant="ghost" asChild>
             <Link href="/profile">
               <UserRound className="h-4 w-4" />
-              Профайл
+              Profile
             </Link>
           </Button>
           <Button asChild>
-            <Link href="/login">Нэвтрэх</Link>
+            <Link href="/login">Log in</Link>
           </Button>
         </nav>
 
@@ -46,7 +58,7 @@ export function Header() {
           <SheetTrigger asChild>
             <Button className="md:hidden" variant="outline" size="icon">
               <Menu className="h-4 w-4" />
-              <span className="sr-only">Цэс нээх</span>
+              <span className="sr-only">Open menu</span>
             </Button>
           </SheetTrigger>
           <SheetContent>
@@ -55,22 +67,28 @@ export function Header() {
             </SheetHeader>
             <nav className="mt-6 grid gap-2">
               <Button variant="ghost" className="justify-start" asChild>
-                <Link href="/">Аяллууд</Link>
+                <Link href="/">Tours</Link>
               </Button>
               <Button variant="outline" className="justify-start" asChild>
                 <Link href="/compare">
                   <GitCompareArrows className="h-4 w-4" />
-                  Харьцуулах
+                  Compare
+                </Link>
+              </Button>
+              <Button variant="ghost" className="justify-start" asChild>
+                <Link href="/my-bookings">
+                  <CalendarCheck className="h-4 w-4" />
+                  Bookings
                 </Link>
               </Button>
               <Button variant="ghost" className="justify-start" asChild>
                 <Link href="/profile">
                   <UserRound className="h-4 w-4" />
-                  Профайл
+                  Profile
                 </Link>
               </Button>
               <Button className="justify-start" asChild>
-                <Link href="/login">Нэвтрэх</Link>
+                <Link href="/login">Log in</Link>
               </Button>
             </nav>
           </SheetContent>

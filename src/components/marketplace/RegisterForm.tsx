@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { AlertCircle, Loader2, LogIn } from "lucide-react";
+import { AlertCircle, Loader2, UserPlus } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -12,17 +12,19 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { loginCustomer } from "@/lib/api";
+import { registerCustomer } from "@/lib/api";
 import { setStoredUser, setToken } from "@/lib/auth";
 
-const loginSchema = z.object({
+const registerSchema = z.object({
   email: z.string().trim().email("Enter a valid email address."),
-  password: z.string().min(1, "Enter your password.")
+  password: z.string().min(6, "Password must be at least 6 characters."),
+  first_name: z.string().trim().min(1, "Enter your first name."),
+  last_name: z.string().trim().optional()
 });
 
-type LoginFormValues = z.infer<typeof loginSchema>;
+type RegisterFormValues = z.infer<typeof registerSchema>;
 
-export function LoginForm() {
+export function RegisterForm() {
   const router = useRouter();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -30,19 +32,24 @@ export function LoginForm() {
     formState: { errors, isSubmitting },
     handleSubmit,
     register
-  } = useForm<LoginFormValues>({
-    resolver: zodResolver(loginSchema),
+  } = useForm<RegisterFormValues>({
+    resolver: zodResolver(registerSchema),
     defaultValues: {
       email: "",
-      password: ""
+      password: "",
+      first_name: "",
+      last_name: ""
     }
   });
 
-  async function onSubmit(values: LoginFormValues) {
+  async function onSubmit(values: RegisterFormValues) {
     setErrorMessage(null);
 
     try {
-      const response = await loginCustomer(values);
+      const response = await registerCustomer({
+        ...values,
+        last_name: values.last_name || null
+      });
       setToken(response.accessToken);
       setStoredUser(response.user);
       router.push("/profile");
@@ -51,21 +58,57 @@ export function LoginForm() {
       setErrorMessage(
         error instanceof Error
           ? error.message
-          : "Customer login failed. Please try again."
+          : "Customer registration failed. Please try again."
       );
     }
   }
 
   return (
-    <Card className="mx-auto max-w-md shadow-soft">
+    <Card className="mx-auto max-w-xl shadow-soft">
       <CardHeader>
-        <CardTitle className="text-2xl">Customer login</CardTitle>
+        <CardTitle className="text-2xl">Create customer account</CardTitle>
         <p className="text-sm leading-6 text-muted-foreground">
-          Uses the marketplace customer endpoint, POST /auth/customer/login.
+          Uses POST /auth/customer/register and signs you in with the returned token.
         </p>
       </CardHeader>
       <CardContent>
         <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <label className="text-sm font-medium" htmlFor="first_name">
+                First name
+              </label>
+              <Input
+                id="first_name"
+                autoComplete="given-name"
+                aria-invalid={Boolean(errors.first_name)}
+                {...register("first_name")}
+              />
+              {errors.first_name ? (
+                <p className="text-sm text-destructive">
+                  {errors.first_name.message}
+                </p>
+              ) : null}
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium" htmlFor="last_name">
+                Last name
+              </label>
+              <Input
+                id="last_name"
+                autoComplete="family-name"
+                aria-invalid={Boolean(errors.last_name)}
+                {...register("last_name")}
+              />
+              {errors.last_name ? (
+                <p className="text-sm text-destructive">
+                  {errors.last_name.message}
+                </p>
+              ) : null}
+            </div>
+          </div>
+
           <div className="space-y-2">
             <label className="text-sm font-medium" htmlFor="email">
               Email
@@ -89,7 +132,7 @@ export function LoginForm() {
             <Input
               id="password"
               type="password"
-              autoComplete="current-password"
+              autoComplete="new-password"
               aria-invalid={Boolean(errors.password)}
               {...register("password")}
             />
@@ -103,7 +146,7 @@ export function LoginForm() {
           {errorMessage ? (
             <Alert variant="destructive">
               <AlertCircle className="h-4 w-4" />
-              <AlertTitle>Login failed</AlertTitle>
+              <AlertTitle>Registration failed</AlertTitle>
               <AlertDescription>{errorMessage}</AlertDescription>
             </Alert>
           ) : null}
@@ -112,16 +155,16 @@ export function LoginForm() {
             {isSubmitting ? (
               <Loader2 className="h-4 w-4 animate-spin" />
             ) : (
-              <LogIn className="h-4 w-4" />
+              <UserPlus className="h-4 w-4" />
             )}
-            Log in
+            Create account
           </Button>
         </form>
 
-        <div className="mt-5 rounded-md border bg-secondary/50 p-4 text-sm leading-6 text-muted-foreground">
-          New customer?{" "}
-          <Link className="font-medium text-primary hover:underline" href="/register">
-            Create an account
+        <div className="mt-5 text-sm text-muted-foreground">
+          Already registered?{" "}
+          <Link className="font-medium text-primary hover:underline" href="/login">
+            Log in
           </Link>
         </div>
       </CardContent>

@@ -1,18 +1,15 @@
 import type { Metadata } from "next";
 
-import { BackendGapPage } from "@/components/marketplace/BackendGapPage";
+import { RegisterForm } from "@/components/marketplace/RegisterForm";
 
 export const metadata: Metadata = {
-  title: "Бүртгүүлэх"
+  title: "Register"
 };
 
 export default function RegisterPage() {
   return (
-    <BackendGapPage
-      title="Customer бүртгэл одоогоор нээгдээгүй"
-      description="Маркетплейс дээр self-service customer бүртгэл үүсгэх backend endpoint хараахан байхгүй тул энэ хуудсыг зориуд хаасан."
-      missingEndpoints={["POST /auth/customer/register"]}
-      note="Бодит endpoint нэмэгдэх хүртэл frontend local-only бүртгэл, fake success, эсвэл customer account амлах урсгал үүсгэхгүй."
-    />
+    <main className="container py-10">
+      <RegisterForm />
+    </main>
   );
 }

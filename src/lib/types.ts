@@ -10,7 +10,12 @@ export type ApiErrorResponse = {
 
 export type ApiResponse<T> = T | ApiDataResponse<T>;
 
-export type UserRole = "guest" | "system_admin" | "tenant_admin" | "user";
+export type UserRole =
+  | "guest"
+  | "customer"
+  | "system_admin"
+  | "tenant_admin"
+  | "user";
 
 export type TourStatus = "draft" | "published" | "archived";
 
@@ -35,6 +40,13 @@ export type AuthUser = {
 export type LoginPayload = {
   email: string;
   password: string;
+};
+
+export type CustomerRegisterPayload = {
+  email: string;
+  password: string;
+  first_name: string;
+  last_name?: string | null;
 };
 
 export type LoginResponse = {
@@ -92,6 +104,21 @@ export type MyBooking = {
   tour_title: string;
   destination_country: string | null;
   destination_city: string | null;
+};
+
+export type BookingCreatePayload = {
+  tour_id: string;
+  customer_first_name: string;
+  customer_last_name?: string | null;
+  customer_email: string;
+  customer_phone?: string | null;
+  traveler_count: number;
+  note?: string | null;
+};
+
+export type BookingCreateResponse = {
+  message: string;
+  booking: Omit<MyBooking, "tour_title" | "destination_country" | "destination_city">;
 };
 
 export type DurationFilterValue = "all" | "1-3" | "4-7" | "8-14" | "15+";
