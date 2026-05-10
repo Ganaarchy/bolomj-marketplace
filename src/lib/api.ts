@@ -154,7 +154,7 @@ export function fetchMarketplaceTour(id: string) {
 }
 
 export function loginCustomer(payload: LoginPayload) {
-  return apiFetch<LoginResponse>("/auth/customer/login", {
+  return apiFetch<LoginResponse>("/auth/login", {
     method: "POST",
     body: payload
   });
