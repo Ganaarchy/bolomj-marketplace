@@ -81,6 +81,16 @@ export function getDestination(tour: MarketplaceTour) {
   return formatDestination(tour.destination_country, tour.destination_city);
 }
 
+export function getCoverImageUrl(tour: Pick<MarketplaceTour, "cover_image_url">) {
+  const coverImageUrl = tour.cover_image_url?.trim();
+
+  if (!coverImageUrl || !/^https?:\/\//i.test(coverImageUrl)) {
+    return null;
+  }
+
+  return coverImageUrl;
+}
+
 export function buildTenantTourUrl(tour: MarketplaceTour) {
   const tenantHost = tour.tenant_subdomain || tour.tenant_slug;
 

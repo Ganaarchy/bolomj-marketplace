@@ -73,7 +73,7 @@ export function CompareButton({ tour, compact = false }: CompareButtonProps) {
         ) : (
           <GitCompareArrows className="h-4 w-4" />
         )}
-        {isAdded ? "Нэмэгдсэн" : "Харьцуулах"}
+        {isAdded ? "Харьцуулалтаас хасах" : "Харьцуулах"}
         {isAdded ? <Minus className="h-3.5 w-3.5 opacity-70" /> : null}
       </Button>
       {message ? (

@@ -18,6 +18,7 @@ import {
   formatDate,
   formatDuration,
   formatPrice,
+  getCoverImageUrl,
   getDestination,
   getTourId
 } from "@/lib/format";
@@ -78,6 +79,37 @@ const mobileRows = rows.filter(
   (row) => row.label !== "Багтсан зүйлс" && row.label !== "Багтаагүй зүйлс"
 );
 
+function CompareThumbnail({
+  tour,
+  className = ""
+}: {
+  tour: MarketplaceTour;
+  className?: string;
+}) {
+  const coverImageUrl = getCoverImageUrl(tour);
+
+  return (
+    <div
+      className={`relative overflow-hidden rounded-md bg-slate-950 ${className}`}
+    >
+      {coverImageUrl ? (
+        <img
+          src={coverImageUrl}
+          alt={`${tour.title} аяллын зураг`}
+          loading="lazy"
+          className="absolute inset-0 h-full w-full object-cover"
+        />
+      ) : (
+        <div
+          aria-label="Зураг байхгүй"
+          className="absolute inset-0 bg-[radial-gradient(circle_at_24%_22%,rgba(59,130,246,0.76),transparent_34%),linear-gradient(135deg,#0f172a,#1e3a8a_55%,#0f766e)]"
+        />
+      )}
+      <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(15,23,42,0.04),rgba(15,23,42,0.38))]" />
+    </div>
+  );
+}
+
 function TourActions({ tour }: { tour: MarketplaceTour }) {
   return (
     <div className="grid gap-2 sm:grid-cols-2 md:grid-cols-1 lg:grid-cols-2">
@@ -104,7 +136,8 @@ export function CompareTable({ tours, onRemove }: CompareTableProps) {
           <Card key={getTourId(tour)} className="overflow-hidden shadow-soft">
             <CardHeader className="gap-3 border-b bg-secondary/40">
               <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0">
+                <div className="min-w-0 flex-1">
+                  <CompareThumbnail tour={tour} className="mb-3 aspect-[16/10] w-full" />
                   <p className="text-xs font-medium uppercase tracking-wide text-primary">
                     Харьцуулж байна
                   </p>
@@ -167,7 +200,7 @@ export function CompareTable({ tours, onRemove }: CompareTableProps) {
                 onClick={() => onRemove(getTourId(tour))}
               >
                 <Trash2 className="h-4 w-4" />
-                Хасах
+                Харьцуулалтаас хасах
               </Button>
             </CardFooter>
           </Card>
@@ -185,7 +218,8 @@ export function CompareTable({ tours, onRemove }: CompareTableProps) {
                 {tours.map((tour) => (
                   <th key={getTourId(tour)} className="min-w-60 p-4 text-left">
                     <div className="flex items-start justify-between gap-3">
-                      <div className="min-w-0">
+                      <div className="min-w-0 flex-1">
+                        <CompareThumbnail tour={tour} className="mb-3 aspect-video w-full" />
                         <Link
                           className="line-clamp-2 font-semibold leading-6 hover:text-primary hover:underline"
                           href={`/tours/${encodeURIComponent(getTourId(tour))}`}

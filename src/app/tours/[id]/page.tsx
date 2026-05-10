@@ -32,6 +32,7 @@ import {
   formatDate,
   formatDuration,
   formatPrice,
+  getCoverImageUrl,
   getDestination
 } from "@/lib/format";
 
@@ -119,19 +120,33 @@ function DetailHero({
   title,
   destination,
   tenantName,
-  isFeatured
+  isFeatured,
+  coverImageUrl
 }: {
   title: string;
   destination: string;
   tenantName: string;
   isFeatured: boolean;
+  coverImageUrl: string | null;
 }) {
   return (
     <section className="overflow-hidden rounded-lg border bg-card shadow-soft">
-      <div className="relative min-h-[320px] bg-slate-950">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_18%_20%,rgba(59,130,246,0.75),transparent_28%),radial-gradient(circle_at_80%_18%,rgba(16,185,129,0.55),transparent_25%),linear-gradient(135deg,#020617,#1e3a8a_48%,#0f766e)]" />
-        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(15,23,42,0.05),rgba(15,23,42,0.86))]" />
-        <div className="relative flex min-h-[320px] flex-col justify-end p-6 text-white md:p-8">
+      <div className="relative min-h-[340px] bg-slate-950 md:min-h-[460px]">
+        {coverImageUrl ? (
+          <img
+            src={coverImageUrl}
+            alt={`${title} аяллын зураг`}
+            loading="eager"
+            className="absolute inset-0 h-full w-full object-cover"
+          />
+        ) : (
+          <div
+            aria-label="Зураг байхгүй"
+            className="absolute inset-0 bg-[radial-gradient(circle_at_18%_20%,rgba(59,130,246,0.75),transparent_28%),radial-gradient(circle_at_80%_18%,rgba(16,185,129,0.55),transparent_25%),linear-gradient(135deg,#020617,#1e3a8a_48%,#0f766e)]"
+          />
+        )}
+        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(15,23,42,0.08),rgba(15,23,42,0.88))]" />
+        <div className="relative flex min-h-[340px] flex-col justify-end p-6 text-white md:min-h-[460px] md:p-8">
           <div className="mb-4 flex flex-wrap gap-2">
             {isFeatured ? (
               <Badge className="border-white/10 bg-white text-slate-950">
@@ -154,6 +169,9 @@ function DetailHero({
             <Building2 className="h-4 w-4" />
             {tenantName}
           </p>
+          {!coverImageUrl ? (
+            <p className="mt-3 text-sm font-medium text-white/72">Зураг байхгүй</p>
+          ) : null}
         </div>
       </div>
     </section>
@@ -185,6 +203,7 @@ export default async function TourDetailPage({ params }: TourDetailPageProps) {
               destination={destination}
               tenantName={tenantName}
               isFeatured={tour.is_featured}
+              coverImageUrl={getCoverImageUrl(tour)}
             />
 
             <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">

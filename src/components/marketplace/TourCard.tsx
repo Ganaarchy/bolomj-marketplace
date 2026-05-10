@@ -25,6 +25,7 @@ import {
   formatDate,
   formatDuration,
   formatPrice,
+  getCoverImageUrl,
   getDestination,
   getTourId
 } from "@/lib/format";
@@ -36,11 +37,24 @@ type TourCardProps = {
 
 function VisualBlock({ tour }: { tour: MarketplaceTour }) {
   const destination = getDestination(tour);
+  const coverImageUrl = getCoverImageUrl(tour);
 
   return (
-    <div className="relative h-44 overflow-hidden bg-slate-950">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_18%_18%,rgba(59,130,246,0.78),transparent_30%),radial-gradient(circle_at_82%_25%,rgba(16,185,129,0.55),transparent_28%),linear-gradient(135deg,#0f172a,#1e3a8a_52%,#0f766e)]" />
-      <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(15,23,42,0.05),rgba(15,23,42,0.72))]" />
+    <div className="relative aspect-[16/10] overflow-hidden bg-slate-950">
+      {coverImageUrl ? (
+        <img
+          src={coverImageUrl}
+          alt={`${tour.title} аяллын зураг`}
+          loading="lazy"
+          className="absolute inset-0 h-full w-full object-cover transition duration-300 group-hover:scale-[1.03]"
+        />
+      ) : (
+        <div
+          aria-label="Зураг байхгүй"
+          className="absolute inset-0 bg-[radial-gradient(circle_at_18%_18%,rgba(59,130,246,0.78),transparent_30%),radial-gradient(circle_at_82%_25%,rgba(16,185,129,0.55),transparent_28%),linear-gradient(135deg,#0f172a,#1e3a8a_52%,#0f766e)]"
+        />
+      )}
+      <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(15,23,42,0.04),rgba(15,23,42,0.74))]" />
       <div className="absolute inset-x-4 top-4 flex items-center justify-between gap-2">
         {tour.is_featured ? (
           <Badge className="border-white/10 bg-white text-slate-950">
@@ -57,8 +71,13 @@ function VisualBlock({ tour }: { tour: MarketplaceTour }) {
       <div className="absolute bottom-4 left-4 right-4 text-white">
         <p className="line-clamp-1 text-sm text-white/78">{destination}</p>
         <p className="mt-1 line-clamp-2 text-2xl font-semibold leading-tight">
-          {tour.destination_city || tour.destination_country || tour.tenant_name}
+          {coverImageUrl
+            ? tour.title
+            : tour.destination_city || tour.destination_country || tour.tenant_name}
         </p>
+        {!coverImageUrl ? (
+          <p className="mt-2 text-xs font-medium text-white/72">Зураг байхгүй</p>
+        ) : null}
       </div>
     </div>
   );

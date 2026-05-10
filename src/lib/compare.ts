@@ -42,7 +42,14 @@ function normalizeCompareTours(tours: unknown): MarketplaceTour[] {
     }
 
     tourIds.add(tourId);
-    normalizedTours.push(candidateTour);
+    normalizedTours.push({
+      ...candidateTour,
+      cover_image_url:
+        typeof candidateTour.cover_image_url === "string" &&
+        candidateTour.cover_image_url.trim()
+          ? candidateTour.cover_image_url.trim()
+          : null
+    });
 
     if (normalizedTours.length === MAX_COMPARE_TOURS) {
       break;

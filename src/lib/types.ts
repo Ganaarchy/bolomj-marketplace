@@ -48,6 +48,7 @@ export type Tour = {
   title: string;
   slug: string;
   description: string | null;
+  cover_image_url: string | null;
   destination_country: string | null;
   destination_city: string | null;
   duration_days: number | null;
