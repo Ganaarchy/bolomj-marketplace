@@ -20,6 +20,7 @@ type ApiFetchOptions = Omit<RequestInit, "body"> & {
   next?: {
     revalidate?: number;
   };
+  timeoutMs?: number;
 };
 
 export function getApiBaseUrl() {
@@ -74,7 +75,7 @@ function redirectToLogin() {
 }
 
 export async function apiFetch<T>(path: string, options: ApiFetchOptions = {}) {
-  const { auth = false, body, headers, next, ...init } = options;
+  const { auth = false, body, headers, next, timeoutMs = 15000, ...init } = options;
   const requestHeaders = new Headers(headers);
   requestHeaders.set("Accept", "application/json");
 
@@ -92,12 +93,31 @@ export async function apiFetch<T>(path: string, options: ApiFetchOptions = {}) {
     }
   }
 
-  const response = await fetch(`${getApiBaseUrl()}${path}`, {
-    ...init,
-    body: body === undefined ? undefined : JSON.stringify(body),
-    headers: requestHeaders,
-    next: next ?? { revalidate: 60 }
-  });
+  const timeoutController = new AbortController();
+  const timeoutId = globalThis.setTimeout(
+    () => timeoutController.abort(),
+    timeoutMs
+  );
+
+  let response: Response;
+
+  try {
+    response = await fetch(`${getApiBaseUrl()}${path}`, {
+      ...init,
+      body: body === undefined ? undefined : JSON.stringify(body),
+      headers: requestHeaders,
+      next: next ?? { revalidate: 60 },
+      signal: init.signal ?? timeoutController.signal
+    });
+  } catch (error) {
+    if (error instanceof DOMException && error.name === "AbortError") {
+      throw new Error("API хүсэлтийн хугацаа хэтэрлээ.");
+    }
+
+    throw error;
+  } finally {
+    globalThis.clearTimeout(timeoutId);
+  }
 
   if (!response.ok) {
     const message = await readErrorMessage(response);
