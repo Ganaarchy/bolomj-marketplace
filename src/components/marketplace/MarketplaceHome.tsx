@@ -1,24 +1,39 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 
 import { CompareBar } from "@/components/marketplace/CompareBar";
-import { TourFilters } from "@/components/marketplace/TourFilters";
+import { HeroSection } from "@/components/marketplace/HeroSection";
+import {
+  TourFilters,
+  type TourFilterValues
+} from "@/components/marketplace/TourFilters";
 import { TourGrid } from "@/components/marketplace/TourGrid";
-import { Badge } from "@/components/ui/badge";
 import { getDestination, toNumber } from "@/lib/format";
-import type {
-  DurationFilterValue,
-  MarketplaceTour,
-  PriceSortValue
-} from "@/lib/types";
+import type { DurationFilterValue, MarketplaceTour } from "@/lib/types";
 
 type MarketplaceHomeProps = {
   tours: MarketplaceTour[];
 };
 
+const defaultFilters: TourFilterValues = {
+  search: "",
+  country: "all",
+  city: "all",
+  tenant: "all",
+  duration: "all",
+  featured: "all",
+  sort: "featured"
+};
+
 function normalize(value: string | null | undefined) {
   return (value || "").toLocaleLowerCase("mn-MN").trim();
+}
+
+function uniqueSorted(values: Array<string | null | undefined>) {
+  return Array.from(
+    new Set(values.filter((item): item is string => Boolean(item)))
+  ).sort((a, b) => a.localeCompare(b, "mn-MN"));
 }
 
 function matchesDuration(
@@ -50,24 +65,34 @@ function matchesDuration(
   return numericDays >= 15;
 }
 
-export function MarketplaceHome({ tours }: MarketplaceHomeProps) {
-  const [search, setSearch] = useState("");
-  const [destination, setDestination] = useState("all");
-  const [duration, setDuration] = useState<DurationFilterValue>("all");
-  const [sort, setSort] = useState<PriceSortValue>("featured");
+function newestTime(tour: MarketplaceTour) {
+  const date = tour.created_at || tour.updated_at || tour.start_date;
+  if (!date) {
+    return 0;
+  }
 
-  const destinations = useMemo(() => {
-    return Array.from(
-      new Set(
-        tours
-          .map((tour) => tour.destination_country)
-          .filter((item): item is string => Boolean(item))
-      )
-    ).sort((a, b) => a.localeCompare(b));
-  }, [tours]);
+  const time = new Date(date).getTime();
+  return Number.isNaN(time) ? 0 : time;
+}
+
+export function MarketplaceHome({ tours }: MarketplaceHomeProps) {
+  const [filters, setFilters] = useState<TourFilterValues>(defaultFilters);
+
+  const countries = useMemo(
+    () => uniqueSorted(tours.map((tour) => tour.destination_country)),
+    [tours]
+  );
+  const cities = useMemo(
+    () => uniqueSorted(tours.map((tour) => tour.destination_city)),
+    [tours]
+  );
+  const tenants = useMemo(
+    () => uniqueSorted(tours.map((tour) => tour.tenant_name)),
+    [tours]
+  );
 
   const filteredTours = useMemo(() => {
-    const searchValue = normalize(search);
+    const searchValue = normalize(filters.search);
 
     return tours
       .filter((tour) => {
@@ -78,8 +103,6 @@ export function MarketplaceHome({ tours }: MarketplaceHomeProps) {
           return false;
         }
 
-        const matchesDestination =
-          destination === "all" || tour.destination_country === destination;
         const matchesSearch =
           !searchValue ||
           [
@@ -90,89 +113,81 @@ export function MarketplaceHome({ tours }: MarketplaceHomeProps) {
           ].some((item) => normalize(item).includes(searchValue));
 
         return (
-          matchesDestination &&
-          matchesDuration(tour.duration_days, duration) &&
-          matchesSearch
+          matchesSearch &&
+          (filters.country === "all" ||
+            tour.destination_country === filters.country) &&
+          (filters.city === "all" || tour.destination_city === filters.city) &&
+          (filters.tenant === "all" || tour.tenant_name === filters.tenant) &&
+          (filters.featured === "all" || tour.is_featured) &&
+          matchesDuration(tour.duration_days, filters.duration)
         );
       })
       .sort((a, b) => {
-        if (sort === "featured") {
-          return Number(b.is_featured) - Number(a.is_featured);
+        if (filters.sort === "featured") {
+          const featuredDelta = Number(b.is_featured) - Number(a.is_featured);
+          return featuredDelta || newestTime(b) - newestTime(a);
         }
 
-        const featuredDelta = Number(b.is_featured) - Number(a.is_featured);
-        if (featuredDelta !== 0) {
-          return featuredDelta;
+        if (filters.sort === "newest") {
+          return newestTime(b) - newestTime(a);
         }
 
-        const aPrice = toNumber(a.price) ?? Number.POSITIVE_INFINITY;
-        const bPrice = toNumber(b.price) ?? Number.POSITIVE_INFINITY;
+        const aPrice = toNumber(a.price);
+        const bPrice = toNumber(b.price);
 
-        return sort === "price-asc" ? aPrice - bPrice : bPrice - aPrice;
+        if (aPrice === null && bPrice === null) {
+          return 0;
+        }
+
+        if (aPrice === null) {
+          return 1;
+        }
+
+        if (bPrice === null) {
+          return -1;
+        }
+
+        return filters.sort === "price-asc" ? aPrice - bPrice : bPrice - aPrice;
       });
-  }, [destination, duration, search, sort, tours]);
+  }, [filters, tours]);
 
-  function resetFilters() {
-    setSearch("");
-    setDestination("all");
-    setDuration("all");
-    setSort("featured");
-  }
+  const handleFilterChange = useCallback((values: TourFilterValues) => {
+    setFilters((currentValues) =>
+      JSON.stringify(currentValues) === JSON.stringify(values)
+        ? currentValues
+        : values
+    );
+  }, []);
+
+  const resetFilters = useCallback(() => {
+    setFilters(defaultFilters);
+  }, []);
 
   return (
     <>
-      <section className="relative overflow-hidden border-b bg-card">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_12%_18%,rgba(20,184,166,0.18),transparent_26%),radial-gradient(circle_at_82%_12%,rgba(245,158,11,0.24),transparent_24%)]" />
-        <div className="container relative grid gap-8 py-12 md:grid-cols-[1.1fr_0.9fr] md:items-center md:py-16">
-          <div>
-            <Badge variant="secondary">Public travel marketplace</Badge>
-            <h1 className="mt-5 max-w-3xl text-balance text-4xl font-semibold tracking-normal md:text-6xl">
-              Аяллын компаниудын нийтэлсэн аяллуудыг нэг дороос
-            </h1>
-            <p className="mt-5 max-w-2xl text-lg leading-8 text-muted-foreground">
-              Улс, хот, хугацаа, үнээр шүүж аяллаа сонгоод захиалгыг тухайн
-              tenant-ийн website дээр үргэлжлүүлнэ.
-            </p>
-          </div>
-          <div className="grid gap-3 rounded-lg border bg-background/80 p-4 shadow-soft backdrop-blur">
-            <div className="grid grid-cols-2 gap-3">
-              <div className="rounded-md bg-card p-4">
-                <p className="text-3xl font-semibold">{tours.length}</p>
-                <p className="text-sm text-muted-foreground">Нийт аялал</p>
-              </div>
-              <div className="rounded-md bg-card p-4">
-                <p className="text-3xl font-semibold">
-                  {tours.filter((tour) => tour.is_featured).length}
-                </p>
-                <p className="text-sm text-muted-foreground">Онцлох аялал</p>
-              </div>
-              <div className="col-span-2 rounded-md bg-primary p-4 text-primary-foreground">
-                <p className="text-sm opacity-90">Чиглэлүүд</p>
-                <p className="mt-1 line-clamp-2 text-lg font-medium">
-                  {destinations.length > 0 ? destinations.join(" · ") : "Одоогоор алга"}
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+      <HeroSection
+        totalTours={tours.length}
+        featuredTours={tours.filter((tour) => tour.is_featured).length}
+        destinations={countries}
+      />
 
-      <main className="container space-y-6 py-8 pb-28">
+      <main id="marketplace-tours" className="container space-y-6 py-8 pb-28">
         <TourFilters
-          search={search}
-          destination={destination}
-          duration={duration}
-          sort={sort}
-          destinations={destinations}
-          onSearchChange={setSearch}
-          onDestinationChange={setDestination}
-          onDurationChange={setDuration}
-          onSortChange={setSort}
+          values={filters}
+          countries={countries}
+          cities={cities}
+          tenants={tenants}
+          resultCount={filteredTours.length}
+          totalCount={tours.length}
+          onChange={handleFilterChange}
+          onReset={resetFilters}
         />
 
         <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <h2 className="text-2xl font-semibold tracking-normal">Нийтлэгдсэн аяллууд</h2>
+            <h2 className="text-2xl font-semibold tracking-normal">
+              Нийтлэгдсэн аяллууд
+            </h2>
             <p className="text-sm text-muted-foreground">
               {filteredTours.length} аялал олдлоо
             </p>

@@ -1,10 +1,11 @@
 "use client";
 
-import type { MarketplaceTour } from "@/lib/types";
 import { getTourId } from "@/lib/format";
+import type { MarketplaceTour } from "@/lib/types";
+import { STORAGE_KEYS } from "@/lib/types";
 
-const COMPARE_STORAGE_KEY = "bolomj-marketplace-compare";
 export const MAX_COMPARE_TOURS = 3;
+export const COMPARE_UPDATED_EVENT = "bolomj:compare-updated";
 
 export type CompareResult =
   | { ok: true; tours: MarketplaceTour[] }
@@ -16,8 +17,47 @@ function canUseStorage() {
 
 function emitCompareUpdated() {
   if (typeof window !== "undefined") {
-    window.dispatchEvent(new Event("bolomj:compare-updated"));
+    window.dispatchEvent(new Event(COMPARE_UPDATED_EVENT));
   }
+}
+
+function normalizeCompareTours(tours: unknown): MarketplaceTour[] {
+  if (!Array.isArray(tours)) {
+    return [];
+  }
+
+  const tourIds = new Set<string>();
+  const normalizedTours: MarketplaceTour[] = [];
+
+  for (const tour of tours) {
+    if (!tour || typeof tour !== "object") {
+      continue;
+    }
+
+    const candidateTour = tour as MarketplaceTour;
+    const tourId = getTourId(candidateTour);
+
+    if (!tourId || tourIds.has(tourId)) {
+      continue;
+    }
+
+    tourIds.add(tourId);
+    normalizedTours.push(candidateTour);
+
+    if (normalizedTours.length === MAX_COMPARE_TOURS) {
+      break;
+    }
+  }
+
+  return normalizedTours;
+}
+
+function areToursEqual(left: MarketplaceTour[], right: MarketplaceTour[]) {
+  if (left.length !== right.length) {
+    return false;
+  }
+
+  return left.every((tour, index) => getTourId(tour) === getTourId(right[index]));
 }
 
 export function getCompareTours(): MarketplaceTour[] {
@@ -26,13 +66,22 @@ export function getCompareTours(): MarketplaceTour[] {
   }
 
   try {
-    const rawValue = window.localStorage.getItem(COMPARE_STORAGE_KEY);
+    const rawValue = window.localStorage.getItem(STORAGE_KEYS.compareTours);
     if (!rawValue) {
       return [];
     }
 
     const parsedValue = JSON.parse(rawValue);
-    return Array.isArray(parsedValue) ? parsedValue : [];
+    const normalizedTours = normalizeCompareTours(parsedValue);
+
+    if (!areToursEqual(normalizedTours, parsedValue)) {
+      window.localStorage.setItem(
+        STORAGE_KEYS.compareTours,
+        JSON.stringify(normalizedTours)
+      );
+    }
+
+    return normalizedTours;
   } catch {
     return [];
   }
@@ -43,7 +92,10 @@ function saveCompareTours(tours: MarketplaceTour[]) {
     return;
   }
 
-  window.localStorage.setItem(COMPARE_STORAGE_KEY, JSON.stringify(tours));
+  window.localStorage.setItem(
+    STORAGE_KEYS.compareTours,
+    JSON.stringify(normalizeCompareTours(tours))
+  );
   emitCompareUpdated();
 }
 
@@ -55,7 +107,7 @@ export function addTourToCompare(tour: MarketplaceTour): CompareResult {
     return {
       ok: false,
       tours,
-      message: "Энэ аялал харьцуулах жагсаалтад байна."
+      message: "Энэ аялал аль хэдийн харьцуулах жагсаалтад байна."
     };
   }
 
@@ -63,7 +115,7 @@ export function addTourToCompare(tour: MarketplaceTour): CompareResult {
     return {
       ok: false,
       tours,
-      message: "Хамгийн ихдээ 3 аялал харьцуулна."
+      message: "Хамгийн ихдээ 3 аялал харьцуулж болно."
     };
   }
 
@@ -74,8 +126,9 @@ export function addTourToCompare(tour: MarketplaceTour): CompareResult {
 }
 
 export function removeTourFromCompare(tourId: string | number) {
+  const normalizedTourId = String(tourId);
   const nextTours = getCompareTours().filter(
-    (tour) => getTourId(tour) !== String(tourId)
+    (tour) => getTourId(tour) !== normalizedTourId
   );
   saveCompareTours(nextTours);
   return nextTours;
@@ -87,5 +140,6 @@ export function clearCompareTours() {
 }
 
 export function isTourInCompare(tourId: string | number) {
-  return getCompareTours().some((tour) => getTourId(tour) === String(tourId));
+  const normalizedTourId = String(tourId);
+  return getCompareTours().some((tour) => getTourId(tour) === normalizedTourId);
 }

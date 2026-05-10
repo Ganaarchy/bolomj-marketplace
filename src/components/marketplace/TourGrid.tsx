@@ -11,6 +11,8 @@ export function TourGrid({ tours, onResetFilters }: TourGridProps) {
   if (tours.length === 0) {
     return (
       <EmptyState
+        title="Аялал олдсонгүй"
+        description="Хайлт эсвэл шүүлтүүрийн нөхцөлөө өөрчилж дахин шалгана уу."
         actionLabel={onResetFilters ? "Шүүлтүүр цэвэрлэх" : undefined}
         onAction={onResetFilters}
       />
@@ -18,9 +20,9 @@ export function TourGrid({ tours, onResetFilters }: TourGridProps) {
   }
 
   return (
-    <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+    <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
       {tours.map((tour) => (
-        <TourCard key={String(tour.id)} tour={tour} />
+        <TourCard key={tour.id} tour={tour} />
       ))}
     </div>
   );

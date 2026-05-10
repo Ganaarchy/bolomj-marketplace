@@ -44,11 +44,11 @@ export function formatDate(date: string | null | undefined) {
     return UNKNOWN;
   }
 
-  return new Intl.DateTimeFormat("mn-MN", {
-    year: "numeric",
-    month: "short",
-    day: "numeric"
-  }).format(parsedDate);
+  const year = parsedDate.getFullYear();
+  const month = String(parsedDate.getMonth() + 1).padStart(2, "0");
+  const day = String(parsedDate.getDate()).padStart(2, "0");
+
+  return `${year}.${month}.${day}`;
 }
 
 export function formatDuration(days: number | string | null | undefined) {
@@ -69,9 +69,16 @@ export function formatCapacity(capacity: number | string | null | undefined) {
   return `${numericCapacity} хүн`;
 }
 
-export function getDestination(tour: MarketplaceTour) {
-  const parts = [tour.destination_city, tour.destination_country].filter(Boolean);
+export function formatDestination(
+  country: string | null | undefined,
+  city: string | null | undefined
+) {
+  const parts = [city, country].filter(Boolean);
   return parts.length > 0 ? parts.join(", ") : UNKNOWN;
+}
+
+export function getDestination(tour: MarketplaceTour) {
+  return formatDestination(tour.destination_country, tour.destination_city);
 }
 
 export function buildTenantTourUrl(tour: MarketplaceTour) {
@@ -85,5 +92,5 @@ export function buildTenantTourUrl(tour: MarketplaceTour) {
 }
 
 export function getTourId(tour: MarketplaceTour) {
-  return String(tour.id);
+  return tour.id;
 }

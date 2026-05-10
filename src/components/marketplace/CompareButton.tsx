@@ -1,11 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Check, GitCompareArrows } from "lucide-react";
+import { Check, GitCompareArrows, Minus } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
   addTourToCompare,
+  COMPARE_UPDATED_EVENT,
   isTourInCompare,
   removeTourFromCompare
 } from "@/lib/compare";
@@ -26,11 +27,11 @@ export function CompareButton({ tour, compact = false }: CompareButtonProps) {
     const syncState = () => setIsAdded(isTourInCompare(tourId));
     syncState();
 
-    window.addEventListener("bolomj:compare-updated", syncState);
+    window.addEventListener(COMPARE_UPDATED_EVENT, syncState);
     window.addEventListener("storage", syncState);
 
     return () => {
-      window.removeEventListener("bolomj:compare-updated", syncState);
+      window.removeEventListener(COMPARE_UPDATED_EVENT, syncState);
       window.removeEventListener("storage", syncState);
     };
   }, [tourId]);
@@ -40,7 +41,7 @@ export function CompareButton({ tour, compact = false }: CompareButtonProps) {
       return;
     }
 
-    const timeout = window.setTimeout(() => setMessage(null), 2600);
+    const timeout = window.setTimeout(() => setMessage(null), 2400);
     return () => window.clearTimeout(timeout);
   }, [message]);
 
@@ -60,17 +61,26 @@ export function CompareButton({ tour, compact = false }: CompareButtonProps) {
   return (
     <div className="relative">
       <Button
+        className={compact ? "w-full" : undefined}
         type="button"
         variant={isAdded ? "secondary" : "outline"}
         size={compact ? "sm" : "default"}
         onClick={handleClick}
         aria-pressed={isAdded}
       >
-        {isAdded ? <Check className="h-4 w-4" /> : <GitCompareArrows className="h-4 w-4" />}
+        {isAdded ? (
+          <Check className="h-4 w-4" />
+        ) : (
+          <GitCompareArrows className="h-4 w-4" />
+        )}
         {isAdded ? "Нэмэгдсэн" : "Харьцуулах"}
+        {isAdded ? <Minus className="h-3.5 w-3.5 opacity-70" /> : null}
       </Button>
       {message ? (
-        <div className="absolute right-0 top-full z-20 mt-2 w-56 rounded-md border bg-card p-2 text-xs shadow-soft">
+        <div
+          className="absolute right-0 top-full z-20 mt-2 w-64 rounded-md border bg-card p-3 text-xs shadow-soft"
+          aria-live="polite"
+        >
           {message}
         </div>
       ) : null}

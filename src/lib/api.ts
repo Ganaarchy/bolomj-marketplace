@@ -1,8 +1,18 @@
-import type { ApiDataResponse, MarketplaceTour } from "@/lib/types";
+import { getToken, logout } from "@/lib/auth";
+import type {
+  ApiErrorResponse,
+  ApiResponse,
+  AuthUser,
+  LoginPayload,
+  LoginResponse,
+  MarketplaceTour
+} from "@/lib/types";
 
 const DEFAULT_API_BASE_URL = "https://api.bolomj.space";
 
-type NextRequestInit = RequestInit & {
+type ApiFetchOptions = Omit<RequestInit, "body"> & {
+  auth?: boolean;
+  body?: unknown;
   next?: {
     revalidate?: number;
   };
@@ -15,14 +25,14 @@ export function getApiBaseUrl() {
   );
 }
 
-export function unwrapApiResponse<T>(payload: ApiDataResponse<T>): T {
+export function unwrapApiResponse<T>(payload: ApiResponse<T>): T {
   if (
     payload &&
     typeof payload === "object" &&
     !Array.isArray(payload) &&
     "data" in payload
   ) {
-    return payload.data as T;
+    return payload.data;
   }
 
   return payload as T;
@@ -32,10 +42,12 @@ async function readErrorMessage(response: Response) {
   const fallback = `API хүсэлт амжилтгүй боллоо (${response.status})`;
 
   try {
-    const payload = (await response.json()) as {
-      message?: unknown;
-      error?: unknown;
-    };
+    const text = await response.text();
+    if (!text) {
+      return fallback;
+    }
+
+    const payload = JSON.parse(text) as ApiErrorResponse;
 
     if (typeof payload.message === "string") {
       return payload.message;
@@ -44,35 +56,63 @@ async function readErrorMessage(response: Response) {
     if (typeof payload.error === "string") {
       return payload.error;
     }
+
+    return text;
   } catch {
-    try {
-      const text = await response.text();
-      if (text) {
-        return text;
-      }
-    } catch {
-      return fallback;
+    return fallback;
+  }
+}
+
+function redirectToLogin() {
+  if (typeof window !== "undefined") {
+    window.location.assign("/login");
+  }
+}
+
+export async function apiFetch<T>(path: string, options: ApiFetchOptions = {}) {
+  const { auth = false, body, headers, next, ...init } = options;
+  const requestHeaders = new Headers(headers);
+  requestHeaders.set("Accept", "application/json");
+
+  if (body !== undefined && !requestHeaders.has("Content-Type")) {
+    requestHeaders.set("Content-Type", "application/json");
+  }
+
+  if (auth) {
+    const token = getToken();
+    if (token) {
+      requestHeaders.set("Authorization", `Bearer ${token}`);
     }
   }
 
-  return fallback;
-}
-
-export async function apiFetch<T>(path: string, init?: NextRequestInit) {
   const response = await fetch(`${getApiBaseUrl()}${path}`, {
     ...init,
-    headers: {
-      Accept: "application/json",
-      ...init?.headers
-    },
-    next: init?.next ?? { revalidate: 60 }
+    body: body === undefined ? undefined : JSON.stringify(body),
+    headers: requestHeaders,
+    next: next ?? { revalidate: 60 }
   });
 
   if (!response.ok) {
-    throw new Error(await readErrorMessage(response));
+    const message = await readErrorMessage(response);
+
+    if (response.status === 401) {
+      logout();
+      redirectToLogin();
+    }
+
+    throw new Error(message);
   }
 
-  const payload = (await response.json()) as ApiDataResponse<T>;
+  if (response.status === 204) {
+    return undefined as T;
+  }
+
+  const text = await response.text();
+  if (!text) {
+    return undefined as T;
+  }
+
+  const payload = JSON.parse(text) as ApiResponse<T>;
   return unwrapApiResponse<T>(payload);
 }
 
@@ -84,4 +124,18 @@ export function fetchMarketplaceTour(id: string) {
   return apiFetch<MarketplaceTour>(
     `/public/marketplace/tours/${encodeURIComponent(id)}`
   );
+}
+
+export function loginExistingUser(payload: LoginPayload) {
+  return apiFetch<LoginResponse>("/auth/login", {
+    method: "POST",
+    body: payload
+  });
+}
+
+export function fetchCurrentUser() {
+  return apiFetch<AuthUser>("/auth/me", {
+    auth: true,
+    next: { revalidate: 0 }
+  });
 }

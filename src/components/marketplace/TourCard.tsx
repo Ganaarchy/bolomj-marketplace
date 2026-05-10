@@ -8,6 +8,7 @@ import {
   Users
 } from "lucide-react";
 
+import { CompareButton } from "@/components/marketplace/CompareButton";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -17,7 +18,7 @@ import {
   CardHeader,
   CardTitle
 } from "@/components/ui/card";
-import { CompareButton } from "@/components/marketplace/CompareButton";
+import { Separator } from "@/components/ui/separator";
 import {
   buildTenantTourUrl,
   formatCapacity,
@@ -33,84 +34,132 @@ type TourCardProps = {
   tour: MarketplaceTour;
 };
 
+function VisualBlock({ tour }: { tour: MarketplaceTour }) {
+  const destination = getDestination(tour);
+
+  return (
+    <div className="relative h-44 overflow-hidden bg-slate-950">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_18%_18%,rgba(59,130,246,0.78),transparent_30%),radial-gradient(circle_at_82%_25%,rgba(16,185,129,0.55),transparent_28%),linear-gradient(135deg,#0f172a,#1e3a8a_52%,#0f766e)]" />
+      <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(15,23,42,0.05),rgba(15,23,42,0.72))]" />
+      <div className="absolute inset-x-4 top-4 flex items-center justify-between gap-2">
+        {tour.is_featured ? (
+          <Badge className="border-white/10 bg-white text-slate-950">
+            <Star className="mr-1 h-3 w-3 fill-current" />
+            Онцлох
+          </Badge>
+        ) : (
+          <span />
+        )}
+        <Badge variant="secondary" className="bg-white/90 text-slate-800">
+          Marketplace
+        </Badge>
+      </div>
+      <div className="absolute bottom-4 left-4 right-4 text-white">
+        <p className="line-clamp-1 text-sm text-white/78">{destination}</p>
+        <p className="mt-1 line-clamp-2 text-2xl font-semibold leading-tight">
+          {tour.destination_city || tour.destination_country || tour.tenant_name}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function DetailPill({
+  icon,
+  label,
+  value
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: string;
+}) {
+  return (
+    <div className="rounded-md border bg-secondary/50 p-3">
+      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+        {icon}
+        {label}
+      </div>
+      <p className="mt-1 line-clamp-1 text-sm font-medium text-foreground">
+        {value}
+      </p>
+    </div>
+  );
+}
+
 export function TourCard({ tour }: TourCardProps) {
   const tenantUrl = buildTenantTourUrl(tour);
 
   return (
-    <Card className="flex h-full overflow-hidden shadow-soft">
+    <Card className="group flex h-full overflow-hidden border-slate-200 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:shadow-lift">
       <div className="flex w-full flex-col">
-        <div className="relative h-36 bg-[radial-gradient(circle_at_20%_20%,rgba(250,204,21,0.85),transparent_28%),linear-gradient(135deg,#0f766e,#38bdf8_48%,#f59e0b)]">
-          <div className="absolute inset-x-4 top-4 flex items-center justify-between gap-2">
-            {tour.is_featured ? (
-              <Badge className="bg-accent text-accent-foreground">
-                <Star className="mr-1 h-3 w-3" />
-                Онцлох
-              </Badge>
-            ) : (
-              <span />
-            )}
-            <Badge variant="secondary">Marketplace</Badge>
-          </div>
-          <div className="absolute bottom-4 left-4 right-4">
-            <div className="rounded-md bg-white/88 p-3 backdrop-blur">
-              <p className="line-clamp-1 text-sm font-medium text-slate-800">
-                {getDestination(tour)}
-              </p>
-              <p className="mt-1 text-xs text-slate-600">
-                {formatDate(tour.start_date)} - {formatDate(tour.end_date)}
-              </p>
-            </div>
-          </div>
-        </div>
+        <VisualBlock tour={tour} />
 
-        <CardHeader>
+        <CardHeader className="pb-3">
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Building2 className="h-4 w-4" />
-            <span className="line-clamp-1">{tour.tenant_name || "Tenant"}</span>
+            <Building2 className="h-4 w-4 text-primary" />
+            <span className="line-clamp-1">
+              {tour.tenant_name || "Тодорхойгүй байгууллага"}
+            </span>
           </div>
-          <CardTitle className="line-clamp-2 leading-snug">{tour.title}</CardTitle>
+          <CardTitle className="line-clamp-2 min-h-12 text-xl leading-snug">
+            {tour.title}
+          </CardTitle>
         </CardHeader>
 
         <CardContent className="flex-1 space-y-4">
-          <p className="line-clamp-3 text-sm leading-6 text-muted-foreground">
-            {tour.description || "Аяллын дэлгэрэнгүй мэдээлэл удахгүй нэмэгдэнэ."}
+          <p className="line-clamp-3 min-h-[4.5rem] text-sm leading-6 text-muted-foreground">
+            {tour.description ||
+              "Аяллын дэлгэрэнгүй тайлбар одоогоор оруулаагүй байна."}
           </p>
 
-          <div className="grid grid-cols-2 gap-3 text-sm">
-            <div className="flex items-center gap-2 rounded-md bg-muted p-3">
-              <CalendarDays className="h-4 w-4 text-primary" />
-              <span>{formatDuration(tour.duration_days)}</span>
-            </div>
-            <div className="flex items-center gap-2 rounded-md bg-muted p-3">
-              <Users className="h-4 w-4 text-primary" />
-              <span>{formatCapacity(tour.capacity)}</span>
-            </div>
-            <div className="col-span-2 flex items-center gap-2 rounded-md bg-muted p-3">
-              <MapPin className="h-4 w-4 text-primary" />
-              <span className="line-clamp-1">{getDestination(tour)}</span>
+          <div className="grid grid-cols-2 gap-3">
+            <DetailPill
+              icon={<CalendarDays className="h-4 w-4 text-primary" />}
+              label="Хугацаа"
+              value={formatDuration(tour.duration_days)}
+            />
+            <DetailPill
+              icon={<Users className="h-4 w-4 text-primary" />}
+              label="Багтаамж"
+              value={formatCapacity(tour.capacity)}
+            />
+            <div className="col-span-2">
+              <DetailPill
+                icon={<MapPin className="h-4 w-4 text-primary" />}
+                label="Чиглэл"
+                value={getDestination(tour)}
+              />
             </div>
           </div>
 
-          <div>
-            <p className="text-sm text-muted-foreground">Үнэ</p>
-            <p className="text-2xl font-semibold">
-              {formatPrice(tour.price, tour.currency)}
-            </p>
+          <Separator />
+
+          <div className="flex items-end justify-between gap-3">
+            <div>
+              <p className="text-xs text-muted-foreground">Үнэ</p>
+              <p className="text-2xl font-semibold">
+                {formatPrice(tour.price, tour.currency)}
+              </p>
+            </div>
+            <div className="text-right text-xs leading-5 text-muted-foreground">
+              <p>Эхлэх: {formatDate(tour.start_date)}</p>
+              <p>Дуусах: {formatDate(tour.end_date)}</p>
+            </div>
           </div>
         </CardContent>
 
-        <CardFooter className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <CardFooter className="grid gap-3 border-t bg-slate-50/80 p-4">
           <CompareButton tour={tour} compact />
-          <div className="flex w-full gap-2 sm:w-auto">
-            <Button className="flex-1 sm:flex-none" variant="outline" asChild>
+          <div className="grid grid-cols-2 gap-2">
+            <Button variant="outline" asChild>
               <Link href={`/tours/${encodeURIComponent(getTourId(tour))}`}>
                 Дэлгэрэнгүй
               </Link>
             </Button>
-            <Button className="flex-1 sm:flex-none" asChild>
+            <Button asChild>
               <a href={tenantUrl} target="_blank" rel="noreferrer">
                 <ExternalLink className="h-4 w-4" />
-                Очих
+                Захиалах
               </a>
             </Button>
           </div>
