@@ -13,7 +13,6 @@ import {
   XCircle
 } from "lucide-react";
 
-import { BookingForm } from "@/components/marketplace/BookingForm";
 import { CompareButton } from "@/components/marketplace/CompareButton";
 import { ErrorState } from "@/components/marketplace/ErrorState";
 import { Badge } from "@/components/ui/badge";
@@ -299,7 +298,7 @@ export default async function TourDetailPage({ params }: TourDetailPageProps) {
               <CardHeader>
                 <CardTitle>Booking</CardTitle>
                 <CardDescription>
-                  Create a marketplace booking with the public booking endpoint.
+                  Continue to the tenant site to book this tour.
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-5">
@@ -340,17 +339,10 @@ export default async function TourDetailPage({ params }: TourDetailPageProps) {
                 </div>
 
                 <div className="grid gap-2">
-                  <BookingForm
-                    tourId={tour.id}
-                    tourTitle={tour.title}
-                    price={tour.price}
-                    currency={tour.currency}
-                    capacity={tour.capacity}
-                  />
-                  <Button asChild variant="outline">
+                  <Button asChild size="lg">
                     <a href={tenantUrl} target="_blank" rel="noreferrer">
                       <ExternalLink className="h-4 w-4" />
-                      View tenant site
+                      Book on tenant site
                     </a>
                   </Button>
                   <CompareButton tour={tour} />

@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { fetchCustomerBooking } from "@/lib/api";
 import { formatDate, formatDestination, formatPrice } from "@/lib/format";
-import { getToken } from "@/lib/auth";
+import { getStoredUser, getToken } from "@/lib/auth";
 import type { MyBooking } from "@/lib/types";
 
 function DetailRow({ label, value }: { label: string; value: string | number }) {
@@ -26,13 +26,16 @@ export function BookingDetailPageClient({ bookingId }: { bookingId: string }) {
   const [booking, setBooking] = useState<MyBooking | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const hasToken = Boolean(getToken());
+  const storedUser = getStoredUser();
+  const hasCustomerSession = Boolean(
+    getToken() && storedUser?.role === "customer"
+  );
 
   useEffect(() => {
     let isMounted = true;
 
     async function loadBooking() {
-      if (!getToken()) {
+      if (!getToken() || getStoredUser()?.role !== "customer") {
         setIsLoading(false);
         return;
       }
@@ -64,15 +67,15 @@ export function BookingDetailPageClient({ bookingId }: { bookingId: string }) {
     };
   }, [bookingId]);
 
-  if (!hasToken) {
+  if (!hasCustomerSession) {
     return (
       <Card className="mx-auto max-w-xl shadow-soft">
         <CardHeader>
-          <CardTitle>Log in to view this booking</CardTitle>
+          <CardTitle>Customer login required</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <p className="text-sm leading-6 text-muted-foreground">
-            Booking details are loaded from GET /customer/bookings/:id.
+            Booking details are only loaded for a verified customer session.
           </p>
           <Button asChild>
             <Link href="/login">Log in</Link>

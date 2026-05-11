@@ -10,20 +10,23 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { fetchCustomerBookings } from "@/lib/api";
 import { formatDate, formatDestination, formatPrice } from "@/lib/format";
-import { getToken } from "@/lib/auth";
+import { getStoredUser, getToken } from "@/lib/auth";
 import type { MyBooking } from "@/lib/types";
 
 export function MyBookingsPageClient() {
   const [bookings, setBookings] = useState<MyBooking[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const hasToken = Boolean(getToken());
+  const storedUser = getStoredUser();
+  const hasCustomerSession = Boolean(
+    getToken() && storedUser?.role === "customer"
+  );
 
   useEffect(() => {
     let isMounted = true;
 
     async function loadBookings() {
-      if (!getToken()) {
+      if (!getToken() || getStoredUser()?.role !== "customer") {
         setIsLoading(false);
         return;
       }
@@ -55,15 +58,15 @@ export function MyBookingsPageClient() {
     };
   }, []);
 
-  if (!hasToken) {
+  if (!hasCustomerSession) {
     return (
       <Card className="mx-auto max-w-xl shadow-soft">
         <CardHeader>
-          <CardTitle>Log in to view bookings</CardTitle>
+          <CardTitle>Customer login required</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <p className="text-sm leading-6 text-muted-foreground">
-            Booking history is loaded from GET /customer/bookings for the signed-in customer.
+            Booking history is only loaded for a verified customer session.
           </p>
           <Button asChild>
             <Link href="/login">Log in</Link>

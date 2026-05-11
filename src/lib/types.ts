@@ -113,21 +113,6 @@ export type MyBooking = {
   destination_city: string | null;
 };
 
-export type BookingCreatePayload = {
-  tour_id: string;
-  customer_first_name: string;
-  customer_last_name?: string | null;
-  customer_email: string;
-  customer_phone?: string | null;
-  traveler_count: number;
-  note?: string | null;
-};
-
-export type BookingCreateResponse = {
-  message: string;
-  booking: Omit<MyBooking, "tour_title" | "destination_country" | "destination_city">;
-};
-
 export type DurationFilterValue = "all" | "1-3" | "4-7" | "8-14" | "15+";
 
 export type PriceSortValue = "featured" | "newest" | "price-asc" | "price-desc";

@@ -43,6 +43,11 @@ export function LoginForm() {
 
     try {
       const response = await loginCustomer(values);
+
+      if (response.user.role !== "customer") {
+        throw new Error("Customer login did not return a customer account.");
+      }
+
       setToken(response.accessToken);
       setStoredUser(response.user);
       router.push("/profile");

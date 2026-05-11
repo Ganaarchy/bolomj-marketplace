@@ -3,8 +3,6 @@ import type {
   ApiErrorResponse,
   ApiResponse,
   AuthUser,
-  BookingCreatePayload,
-  BookingCreateResponse,
   LoginPayload,
   LoginResponse,
   MarketplaceTour,
@@ -154,7 +152,7 @@ export function fetchMarketplaceTour(id: string) {
 }
 
 export function loginCustomer(payload: LoginPayload) {
-  return apiFetch<LoginResponse>("/auth/login", {
+  return apiFetch<LoginResponse>("/auth/customer/login", {
     method: "POST",
     body: payload
   });
@@ -175,25 +173,16 @@ export function fetchCurrentUser() {
   });
 }
 
-export function createBooking(payload: BookingCreatePayload) {
-  return apiFetch<BookingCreateResponse>("/bookings", {
-    method: "POST",
-    auth: "customer",
-    body: payload,
-    next: { revalidate: 0 }
-  });
-}
-
 export function fetchCustomerBookings() {
   return apiFetch<MyBooking[]>("/customer/bookings", {
-    auth: true,
+    auth: "customer",
     next: { revalidate: 0 }
   });
 }
 
 export function fetchCustomerBooking(id: string) {
   return apiFetch<MyBooking>(`/customer/bookings/${encodeURIComponent(id)}`, {
-    auth: true,
+    auth: "customer",
     next: { revalidate: 0 }
   });
 }
