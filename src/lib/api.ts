@@ -5,8 +5,11 @@ import type {
   AuthUser,
   LoginPayload,
   LoginResponse,
+  MarketplaceTourDetail,
   MarketplaceTour,
   MyBooking,
+  TourDetailPhoto,
+  TourDetailVideo,
   TenantRequestPayload
 } from "@/lib/types";
 
@@ -145,10 +148,75 @@ export function fetchMarketplaceTours() {
   return apiFetch<MarketplaceTour[]>("/public/marketplace/tours");
 }
 
-export function fetchMarketplaceTour(id: string) {
-  return apiFetch<MarketplaceTour>(
+type RawTourDetailPhoto = Omit<TourDetailPhoto, "sortOrder"> & {
+  sortOrder?: number | string | null;
+  sort_order?: number | string | null;
+};
+
+type RawMarketplaceTourDetail = MarketplaceTour &
+  Partial<{
+    coverImageUrl: string | null;
+    detailPhotos: RawTourDetailPhoto[] | null;
+    detail_photos: RawTourDetailPhoto[] | null;
+    detailVideo: RawTourDetailPhoto | null;
+    detail_video: RawTourDetailPhoto | null;
+  }>;
+
+function normalizeOptionalNumber(value: number | string | null | undefined) {
+  if (value === null || value === undefined || value === "") {
+    return undefined;
+  }
+
+  const numericValue = typeof value === "number" ? value : Number(value);
+  return Number.isFinite(numericValue) ? numericValue : undefined;
+}
+
+function normalizeTourDetailPhoto(
+  media: RawTourDetailPhoto | null | undefined
+): TourDetailPhoto | null {
+  if (!media || typeof media.url !== "string" || !media.url.trim()) {
+    return null;
+  }
+
+  return {
+    id: media.id,
+    url: media.url.trim(),
+    caption: media.caption ?? null,
+    sortOrder: normalizeOptionalNumber(media.sortOrder ?? media.sort_order)
+  };
+}
+
+function normalizeTourDetailVideo(
+  media: RawTourDetailPhoto | null | undefined
+): TourDetailVideo | null {
+  return normalizeTourDetailPhoto(media);
+}
+
+function normalizeMarketplaceTourDetail(
+  tour: RawMarketplaceTourDetail
+): MarketplaceTourDetail {
+  const coverImageUrl = tour.coverImageUrl ?? tour.cover_image_url ?? null;
+  const rawPhotos = tour.detailPhotos ?? tour.detail_photos ?? [];
+  const rawVideo = tour.detailVideo ?? tour.detail_video ?? null;
+
+  return {
+    ...tour,
+    cover_image_url: tour.cover_image_url ?? coverImageUrl,
+    coverImageUrl,
+    detailPhotos: rawPhotos
+      .map((photo) => normalizeTourDetailPhoto(photo))
+      .filter((photo): photo is TourDetailPhoto => Boolean(photo))
+      .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0)),
+    detailVideo: normalizeTourDetailVideo(rawVideo)
+  };
+}
+
+export async function fetchMarketplaceTour(id: string) {
+  const tour = await apiFetch<RawMarketplaceTourDetail>(
     `/public/marketplace/tours/${encodeURIComponent(id)}`
   );
+
+  return normalizeMarketplaceTourDetail(tour);
 }
 
 export function loginCustomer(payload: LoginPayload) {

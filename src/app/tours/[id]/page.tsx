@@ -15,6 +15,7 @@ import {
 
 import { CompareButton } from "@/components/marketplace/CompareButton";
 import { ErrorState } from "@/components/marketplace/ErrorState";
+import { TourMediaImage } from "@/components/marketplace/TourMediaImage";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -35,6 +36,7 @@ import {
   getCoverImageUrl,
   getDestination
 } from "@/lib/format";
+import type { TourDetailPhoto, TourDetailVideo } from "@/lib/types";
 
 type TourDetailPageProps = {
   params: Promise<{
@@ -133,11 +135,12 @@ function DetailHero({
     <section className="overflow-hidden rounded-lg border bg-card shadow-soft">
       <div className="relative min-h-[340px] bg-slate-950 md:min-h-[460px]">
         {coverImageUrl ? (
-          <img
+          <TourMediaImage
             src={coverImageUrl}
             alt={`${title} аяллын зураг`}
             loading="eager"
             className="absolute inset-0 h-full w-full object-cover"
+            fallbackClassName="absolute inset-0"
           />
         ) : (
           <div
@@ -175,6 +178,74 @@ function DetailHero({
         </div>
       </div>
     </section>
+  );
+}
+
+function TourPhotoGallery({
+  photos,
+  title
+}: {
+  photos: TourDetailPhoto[];
+  title: string;
+}) {
+  if (photos.length === 0) {
+    return null;
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Зургийн цомог</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+          {photos.map((photo, index) => (
+            <figure
+              key={photo.id}
+              className="overflow-hidden rounded-lg border bg-muted"
+            >
+              <div className="aspect-[4/3]">
+                <TourMediaImage
+                  src={photo.url}
+                  alt={`${title} зураг ${index + 1}`}
+                  className="h-full w-full object-cover"
+                  fallbackClassName="h-full"
+                />
+              </div>
+              {photo.caption ? (
+                <figcaption className="px-3 py-2 text-sm text-muted-foreground">
+                  {photo.caption}
+                </figcaption>
+              ) : null}
+            </figure>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function TourDetailVideoSection({ video }: { video: TourDetailVideo | null }) {
+  if (!video) {
+    return null;
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Танилцуулга видео</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        <video
+          controls
+          src={video.url}
+          className="aspect-video w-full rounded-lg border bg-black"
+        />
+        {video.caption ? (
+          <p className="text-sm text-muted-foreground">{video.caption}</p>
+        ) : null}
+      </CardContent>
+    </Card>
   );
 }
 
@@ -246,6 +317,10 @@ export default async function TourDetailPage({ params }: TourDetailPageProps) {
                 </p>
               </CardContent>
             </Card>
+
+            <TourPhotoGallery photos={tour.detailPhotos} title={tour.title} />
+
+            <TourDetailVideoSection video={tour.detailVideo} />
 
             <Card>
               <CardHeader>

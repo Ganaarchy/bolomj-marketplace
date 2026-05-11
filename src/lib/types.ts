@@ -93,6 +93,26 @@ export type MarketplaceTour = Tour & {
   tenant_subdomain: string | null;
 };
 
+export type TourDetailPhoto = {
+  id: string;
+  url: string;
+  caption?: string | null;
+  sortOrder?: number;
+};
+
+export type TourDetailVideo = {
+  id: string;
+  url: string;
+  caption?: string | null;
+  sortOrder?: number;
+};
+
+export type MarketplaceTourDetail = MarketplaceTour & {
+  coverImageUrl: string | null;
+  detailPhotos: TourDetailPhoto[];
+  detailVideo: TourDetailVideo | null;
+};
+
 export type MyBooking = {
   id: string;
   tenant_id: string;
