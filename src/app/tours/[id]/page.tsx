@@ -183,12 +183,19 @@ function DetailHero({
   if (detailVideo) {
     return (
       <section className="overflow-hidden rounded-lg border bg-card shadow-soft">
-        <div className="grid lg:grid-cols-[minmax(0,1fr)_420px]">
+        <div className="grid xl:grid-cols-[minmax(0,1fr)_420px]">
           {heroContent}
-          <div className="flex flex-col justify-center gap-3 bg-slate-950 p-4 md:p-6">
+          <div className="flex flex-col justify-center gap-3 bg-slate-950 p-4 text-white md:p-6">
+            <div>
+              <p className="text-sm font-semibold">Танилцуулга видео</p>
+              <p className="mt-1 text-xs text-white/62">
+                Аяллын богино танилцуулга
+              </p>
+            </div>
             <video
               controls
               src={detailVideo.url}
+              preload="metadata"
               className="aspect-video w-full rounded-lg border border-white/10 bg-black"
             />
             {detailVideo.caption ? (
